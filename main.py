@@ -18,8 +18,9 @@ app = FastAPI(
 origins = [
     "http://localhost",
     "http://localhost:8000",
-    "https://dockprueba-1.onrender.com"
-    "https://dockfrontend.netlify.app"
+    "https://dockprueba-1.onrender.com",
+    "https://dockfrontend.netlify.app",
+    "https://dockfronted.netlify.app"
 ]
 
 app.add_middleware(
