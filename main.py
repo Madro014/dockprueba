@@ -18,7 +18,7 @@ app = FastAPI(
 origins = [
     "http://localhost",
     "http://localhost:8000",
-    "https://dockprueba.onrender.com"
+    "https://dockprueba-1.onrender.com"
 ]
 
 app.add_middleware(

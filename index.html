@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API de Texto</title>
+    <title>API de Ejemplo (Texto y Suma)</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -15,6 +15,7 @@
             background-color: #282c34;
             color: #f8f8f2;
             margin: 0;
+            padding: 20px;
         }
         .container {
             background-color: #3a3f4b;
@@ -23,37 +24,29 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             text-align: center;
             width: 90%;
-            max-width: 500px;
+            max-width: 600px;
+        }
+        h2 {
+            color: #61dafb;
+            border-bottom: 2px solid #61dafb;
+            padding-bottom: 5px;
+            margin-top: 30px;
         }
         button {
             background-color: #61dafb;
             color: #282c34;
             border: none;
-            padding: 12px 25px;
+            padding: 10px 20px;
             border-radius: 5px;
-            font-size: 1.1em;
+            font-size: 1em;
             cursor: pointer;
             transition: background-color 0.3s ease;
+            margin-top: 10px;
         }
         button:hover {
             background-color: #21a1f1;
         }
-        #welcomeMessage {
-            margin-top: 20px;
-            font-size: 1.2em;
-            color: #a0e060;
-        }
-        #conversionForm {
-            margin-top: 30px;
-            display: none; /* Oculto inicialmente */
-            flex-direction: column;
-            gap: 15px;
-            align-items: center;
-        }
-        #conversionForm label {
-            font-size: 1.1em;
-        }
-        #conversionForm input[type="text"] {
+        input[type="text"], input[type="number"] {
             width: 80%;
             padding: 10px;
             border: 1px solid #555;
@@ -62,14 +55,25 @@
             color: #f8f8f2;
             font-size: 1em;
         }
-        #conversionForm button {
-            background-color: #a0e060;
-            color: #282c34;
+        .form-section {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
         }
-        #conversionForm button:hover {
-            background-color: #7cb342;
+        #welcomeMessage {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #a0e060;
         }
-        #result {
+        #conversionForm, #sumForm {
+             display: none;
+        }
+        .result {
             margin-top: 20px;
             text-align: left;
             background-color: #444;
@@ -79,78 +83,159 @@
             max-width: 450px;
             word-wrap: break-word;
         }
-        #result p {
+        .result p {
             margin: 5px 0;
+        }
+        .sum-inputs {
+            display: flex;
+            gap: 10px;
+            width: 80%;
+            justify-content: center;
+        }
+        .sum-inputs input {
+            width: 40%;
+            text-align: center;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Bienvenido a la API de Texto</h1>
-        <button id="startButton">Iniciar</button>
+        <h1>API de Ejemplo (FastAPI + Render)</h1>
+        
+        <button id="startButton">Conectar y Abrir Herramientas</button>
         <p id="welcomeMessage"></p>
 
-        <div id="conversionForm">
-            <label for="phraseInput">Digite su frase para transformarla en mayúscula:</label>
+        <hr/>
+        
+        <div id="conversionForm" class="form-section">
+            <h2>1. Conversión a Mayúsculas (POST)</h2>
+            <label for="phraseInput">Digite su frase:</label>
             <input type="text" id="phraseInput" placeholder="Escribe tu frase aquí">
             <button id="convertButton">Convertir a Mayúsculas</button>
+            <div id="textResult" class="result" style="display: none;">
+                <p><strong>Original:</strong> <span id="originalText"></span></p>
+                <p><strong>Convertido:</strong> <span id="convertedText"></span></p>
+            </div>
         </div>
 
-        <div id="result">
-            <p><strong>Texto Original:</strong> <span id="originalText"></span></p>
-            <p><strong>Texto Convertido:</strong> <span id="convertedText"></span></p>
+        <hr/>
+
+        <div id="sumForm" class="form-section">
+            <h2>2. Sumar Números (GET con Query Params)</h2>
+            <label>Ingrese dos números para sumar:</label>
+            <div class="sum-inputs">
+                <input type="number" id="numA" placeholder="Número A">
+                <input type="number" id="numB" placeholder="Número B">
+            </div>
+            <button id="sumButton">Sumar</button>
+            <div id="sumResult" class="result" style="display: none;">
+                <p><strong>Suma:</strong> <span id="totalSum"></span></p>
+            </div>
         </div>
     </div>
 
     <script>
+        // 🚀 URL base de tu servicio en Render (CORREGIDA)
+        const API_BASE_URL = 'https://dockprueba-1.onrender.com';
+
+        // --- SELECTORES DE ELEMENTOS (Sin cambios) ---
         const startButton = document.getElementById('startButton');
         const welcomeMessage = document.getElementById('welcomeMessage');
         const conversionForm = document.getElementById('conversionForm');
         const phraseInput = document.getElementById('phraseInput');
         const convertButton = document.getElementById('convertButton');
+        const textResultDiv = document.getElementById('textResult');
         const originalTextSpan = document.getElementById('originalText');
         const convertedTextSpan = document.getElementById('convertedText');
-        const resultDiv = document.getElementById('result');
+        
+        const sumForm = document.getElementById('sumForm');
+        const numAInput = document.getElementById('numA');
+        const numBInput = document.getElementById('numB');
+        const sumButton = document.getElementById('sumButton');
+        const sumResultDiv = document.getElementById('sumResult');
+        const totalSumSpan = document.getElementById('totalSum');
 
-        resultDiv.style.display = 'none'; // Ocultar el resultado inicialmente
+        // --- FUNCIONES DE EVENTO ---
 
+        // Función para el Endpoint GET / (Bienvenida)
         startButton.addEventListener('click', async () => {
             try {
-                const response = await fetch('https://dockprueba.onrender.com');
+                // Llama a https://dockprueba-1.onrender.com/
+                const response = await fetch(API_BASE_URL);
+                if (!response.ok) throw new Error('API no respondió correctamente.');
                 const data = await response.json();
+                
+                // Mostrar bienvenida y formularios
                 welcomeMessage.textContent = data.mensaje;
-                startButton.style.display = 'none'; // Ocultar el botón de inicio
-                conversionForm.style.display = 'flex'; // Mostrar el formulario
+                startButton.style.display = 'none';
+                conversionForm.style.display = 'flex';
+                sumForm.style.display = 'flex';
             } catch (error) {
                 welcomeMessage.textContent = 'Error al conectar con la API de bienvenida.';
                 console.error('Error fetching welcome message:', error);
             }
         });
 
+        // Función para el Endpoint POST /mayusculas
         convertButton.addEventListener('click', async () => {
-            const phrase = phraseInput.value;
+            const phrase = phraseInput.value.trim();
             if (!phrase) {
                 alert('Por favor, digite una frase.');
                 return;
             }
 
             try {
-                const response = await fetch('https://dockprueba.onrender.com/mayusculas', {
+                // Llama a https://dockprueba-1.onrender.com/mayusculas
+                const response = await fetch(`${API_BASE_URL}/mayusculas`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ texto: phrase })
+                    body: JSON.stringify({ texto: phrase }) 
                 });
+
+                if (!response.ok) throw new Error(`Error ${response.status}: Revisar la respuesta de la API.`);
+
                 const data = await response.json();
+                
+                // Mostrar resultado
                 originalTextSpan.textContent = data.texto_original;
                 convertedTextSpan.textContent = data.texto_convertido;
-                resultDiv.style.display = 'block'; // Mostrar el resultado
+                textResultDiv.style.display = 'block';
             } catch (error) {
                 originalTextSpan.textContent = 'Error al convertir el texto.';
-                convertedTextSpan.textContent = '';
-                resultDiv.style.display = 'block';
+                convertedTextSpan.textContent = 'Verifique la consola para detalles.';
+                textResultDiv.style.display = 'block';
                 console.error('Error converting text:', error);
+            }
+        });
+
+        // Función para el Endpoint GET /sumar
+        sumButton.addEventListener('click', async () => {
+            const numA = parseInt(numAInput.value);
+            const numB = parseInt(numBInput.value);
+
+            if (isNaN(numA) || isNaN(numB)) {
+                alert('Por favor, ingrese dos números válidos.');
+                return;
+            }
+
+            try {
+                // Llama a https://dockprueba-1.onrender.com/sumar?a=X&b=Y
+                const url = `${API_BASE_URL}/sumar?a=${numA}&b=${numB}`;
+                const response = await fetch(url);
+
+                if (!response.ok) throw new Error(`Error ${response.status}: Revisar la respuesta de la API.`);
+
+                const data = await response.json();
+                
+                // Mostrar resultado
+                totalSumSpan.textContent = data.suma;
+                sumResultDiv.style.display = 'block';
+            } catch (error) {
+                totalSumSpan.textContent = 'Error al realizar la suma. Verifique la consola.';
+                sumResultDiv.style.display = 'block';
+                console.error('Error summing numbers:', error);
             }
         });
     </script>
