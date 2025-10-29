@@ -19,6 +19,7 @@ origins = [
     "http://localhost",
     "http://localhost:8000",
     "https://dockprueba-1.onrender.com"
+    "https://dockfrontend.netlify.app"
 ]
 
 app.add_middleware(
