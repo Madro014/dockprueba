@@ -1,5 +1,6 @@
 # main.py
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
  
 # --- 1. Definir el "Molde" de los Datos (Schema) ---
@@ -12,6 +13,20 @@ class ItemTexto(BaseModel):
 app = FastAPI(
     title="API de Ejemplo",
     description="Una API simple con operaciones matemáticas y de texto."
+)
+
+origins = [
+    "http://localhost",
+    "http://localhost:8000",
+    "https://dockprueba.onrender.com"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
  
 # --- 3. Endpoint de Bienvenida (GET) ---

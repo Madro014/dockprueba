@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API de Texto</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #282c34;
+            color: #f8f8f2;
+            margin: 0;
+        }
+        .container {
+            background-color: #3a3f4b;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+        }
+        button {
+            background-color: #61dafb;
+            color: #282c34;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #21a1f1;
+        }
+        #welcomeMessage {
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #a0e060;
+        }
+        #conversionForm {
+            margin-top: 30px;
+            display: none; /* Oculto inicialmente */
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+        #conversionForm label {
+            font-size: 1.1em;
+        }
+        #conversionForm input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            background-color: #444;
+            color: #f8f8f2;
+            font-size: 1em;
+        }
+        #conversionForm button {
+            background-color: #a0e060;
+            color: #282c34;
+        }
+        #conversionForm button:hover {
+            background-color: #7cb342;
+        }
+        #result {
+            margin-top: 20px;
+            text-align: left;
+            background-color: #444;
+            padding: 15px;
+            border-radius: 5px;
+            width: 90%;
+            max-width: 450px;
+            word-wrap: break-word;
+        }
+        #result p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bienvenido a la API de Texto</h1>
+        <button id="startButton">Iniciar</button>
+        <p id="welcomeMessage"></p>
+
+        <div id="conversionForm">
+            <label for="phraseInput">Digite su frase para transformarla en mayúscula:</label>
+            <input type="text" id="phraseInput" placeholder="Escribe tu frase aquí">
+            <button id="convertButton">Convertir a Mayúsculas</button>
+        </div>
+
+        <div id="result">
+            <p><strong>Texto Original:</strong> <span id="originalText"></span></p>
+            <p><strong>Texto Convertido:</strong> <span id="convertedText"></span></p>
+        </div>
+    </div>
+
+    <script>
+        const startButton = document.getElementById('startButton');
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        const conversionForm = document.getElementById('conversionForm');
+        const phraseInput = document.getElementById('phraseInput');
+        const convertButton = document.getElementById('convertButton');
+        const originalTextSpan = document.getElementById('originalText');
+        const convertedTextSpan = document.getElementById('convertedText');
+        const resultDiv = document.getElementById('result');
+
+        resultDiv.style.display = 'none'; // Ocultar el resultado inicialmente
+
+        startButton.addEventListener('click', async () => {
+            try {
+                const response = await fetch('https://dockprueba.onrender.com');
+                const data = await response.json();
+                welcomeMessage.textContent = data.mensaje;
+                startButton.style.display = 'none'; // Ocultar el botón de inicio
+                conversionForm.style.display = 'flex'; // Mostrar el formulario
+            } catch (error) {
+                welcomeMessage.textContent = 'Error al conectar con la API de bienvenida.';
+                console.error('Error fetching welcome message:', error);
+            }
+        });
+
+        convertButton.addEventListener('click', async () => {
+            const phrase = phraseInput.value;
+            if (!phrase) {
+                alert('Por favor, digite una frase.');
+                return;
+            }
+
+            try {
+                const response = await fetch('https://dockprueba.onrender.com/mayusculas', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ texto: phrase })
+                });
+                const data = await response.json();
+                originalTextSpan.textContent = data.texto_original;
+                convertedTextSpan.textContent = data.texto_convertido;
+                resultDiv.style.display = 'block'; // Mostrar el resultado
+            } catch (error) {
+                originalTextSpan.textContent = 'Error al convertir el texto.';
+                convertedTextSpan.textContent = '';
+                resultDiv.style.display = 'block';
+                console.error('Error converting text:', error);
+            }
+        });
+    </script>
+</body>
+</html>
